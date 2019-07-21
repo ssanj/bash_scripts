@@ -1,0 +1,35 @@
+#!/bin/bash
+
+color_my_prompt() {
+  CYAN="\[$(tput setaf 6)\]"
+  YELLOW="\[$(tput setaf 3)\]"
+  RESET="\[$(tput sgr0)\]"
+
+  local __pwd
+  __pwd=$(pwd)
+
+  if [ -d "$(pwd)/.git" ]; then
+
+    local __git_branch
+    local __git_branch_local
+    local __git_branch_with_remote
+
+    # shellcheck disable=SC2063
+    __git_branch_local=$(git branch 2>/dev/null | grep '^*' | colrm 1 2)
+    # shellcheck disable=SC2063    
+    __git_branch_with_remote=$(git branch -vv 2>/dev/null | grep '^*' | grep -Po '\[(.+/.+)\]')
+
+    if [ -z "$__git_branch_with_remote" ]; then
+      __git_branch=$__git_branch_local
+    else
+      __git_branch=$__git_branch_with_remote
+    fi    
+
+    PS1="\\u@mbp:${CYAN}$__pwd${RESET}:${YELLOW}$__git_branch${RESET}\$ "
+  else
+    PS1="\\u@mbp:${CYAN}$__pwd${RESET}\$ "
+  fi
+
+}
+
+export PROMPT_COMMAND=color_my_prompt
