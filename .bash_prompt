@@ -17,6 +17,10 @@ git_branch() {
     INDEX=0
     for f in $VALUES; do
       AR[$INDEX]=$f
+      if [ $INDEX -eq 2 ]; then
+        #if we are ahead or behind we get additional info
+        AR[$INDEX]=$(echo $f | tr ':' '\n' |  head -n 1)
+      fi
       let INDEX=INDEX+1
     done
     echo ":${YELLOW}${AR[0]}|${RESET}${RED}${AR[1]}${RESET}"
@@ -30,7 +34,6 @@ git_modified() {
   else
     echo ""
   fi
-
 }
 
 color_my_prompt() {
