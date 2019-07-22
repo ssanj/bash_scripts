@@ -4,6 +4,7 @@ color_my_prompt() {
   CYAN="\[$(tput setaf 6)\]"
   YELLOW="\[$(tput setaf 3)\]"
   RESET="\[$(tput sgr0)\]"
+  RED="\[$(tput setaf 1)\]"
 
   local __pwd
   __pwd=$(pwd)
@@ -13,21 +14,36 @@ color_my_prompt() {
     local __git_branch
     local __git_branch_local
     local __git_branch_with_remote
+    local __git_dirty
+    local __git_mod
 
     # shellcheck disable=SC2063
     __git_branch_local=$(git branch 2>/dev/null | grep '^*' | colrm 1 2)
     # shellcheck disable=SC2063    
     __git_branch_with_remote=$(git branch -vv 2>/dev/null | grep '^*' | grep -Po '\[(.+/.+)\]')
+    __git_dirty=$(git status --short 2>/dev/null | tr '\n' ' ')
 
     if [ -z "$__git_branch_with_remote" ]; then
       __git_branch=$__git_branch_local
     else
-      __git_branch=$__git_branch_with_remote
-    fi    
+      VALUES=$(echo $__git_branch_with_remote | sed s/\\]// | sed s/\\[// | tr '/' ' ')
+      INDEX=0
+      for f in $VALUES; do
+        AR[$INDEX]=$f
+        let INDEX=INDEX+1
+      done
+      __git_branch="${YELLOW}${AR[0]}|${RESET}${RED}${AR[1]}${RESET}"
+    fi
 
-    PS1="\\u@mbp:${CYAN}$__pwd${RESET}:${YELLOW}$__git_branch${RESET}\$ "
+    if [ ! -z "$__git_dirty" ]; then
+      __git_mod=":${CYAN}*${RESET}"
+    else
+      __git_mod=""
+    fi
+
+    PS1="\\u@mbp:${CYAN}$__pwd${RESET}:$__git_branch$__git_mod\$ "
   else
-    PS1="\\u@mbp:${CYAN}$__pwd${RESET}\$ "
+    PS1="\\u@mbp:${CYAN}$__pwd${RESET}$__git_mod\$ "
   fi
 
 }
