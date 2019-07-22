@@ -1,10 +1,39 @@
 #!/bin/bash
 
+CYAN="\[$(tput setaf 6)\]"
+YELLOW="\[$(tput setaf 3)\]"
+RESET="\[$(tput sgr0)\]"
+RED="\[$(tput setaf 1)\]"
+
+
+git_branch() {
+  local __git_branch_local="$1"
+  local __git_branch_with_remote="$2"
+
+  if [ -z "$__git_branch_with_remote" ]; then
+    echo ":${RED}$__git_branch_local${RESET}"
+  else
+    VALUES=$(echo $__git_branch_with_remote | sed s/\\]// | sed s/\\[// | tr '/' ' ')
+    INDEX=0
+    for f in $VALUES; do
+      AR[$INDEX]=$f
+      let INDEX=INDEX+1
+    done
+    echo ":${YELLOW}${AR[0]}|${RESET}${RED}${AR[1]}${RESET}"
+  fi
+}
+
+git_modified() {
+  local __git_dirty="$1"
+  if [ ! -z "$__git_dirty" ]; then
+    echo ":${CYAN}*${RESET}"
+  else
+    echo ""
+  fi
+
+}
+
 color_my_prompt() {
-  CYAN="\[$(tput setaf 6)\]"
-  YELLOW="\[$(tput setaf 3)\]"
-  RESET="\[$(tput sgr0)\]"
-  RED="\[$(tput setaf 1)\]"
 
   local __pwd
   __pwd=$(pwd)
@@ -23,25 +52,10 @@ color_my_prompt() {
     __git_branch_with_remote=$(git branch -vv 2>/dev/null | grep '^*' | grep -Po '\[(.+/.+)\]')
     __git_dirty=$(git status --short 2>/dev/null | tr '\n' ' ')
 
-    if [ -z "$__git_branch_with_remote" ]; then
-      __git_branch="${RED}$__git_branch_local${RESET}"
-    else
-      VALUES=$(echo $__git_branch_with_remote | sed s/\\]// | sed s/\\[// | tr '/' ' ')
-      INDEX=0
-      for f in $VALUES; do
-        AR[$INDEX]=$f
-        let INDEX=INDEX+1
-      done
-      __git_branch="${YELLOW}${AR[0]}|${RESET}${RED}${AR[1]}${RESET}"
-    fi
+    __git_branch=$(git_branch $__git_branch_local $__git_branch_with_remote)
+    __git_mod=$(git_modified $__git_dirty)
 
-    if [ ! -z "$__git_dirty" ]; then
-      __git_mod=":${CYAN}*${RESET}"
-    else
-      __git_mod=""
-    fi
-
-    PS1="\\u@mbp:${CYAN}$__pwd${RESET}:$__git_branch$__git_mod\$ "
+    PS1="\\u@mbp:${CYAN}$__pwd${RESET}$__git_branch$__git_mod\$ "
   else
     PS1="\\u@mbp:${CYAN}$__pwd${RESET}$__git_mod\$ "
   fi
