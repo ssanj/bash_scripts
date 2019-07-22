@@ -24,7 +24,7 @@ color_my_prompt() {
     __git_dirty=$(git status --short 2>/dev/null | tr '\n' ' ')
 
     if [ -z "$__git_branch_with_remote" ]; then
-      __git_branch=$__git_branch_local
+      __git_branch="${RED}$__git_branch_local${RESET}"
     else
       VALUES=$(echo $__git_branch_with_remote | sed s/\\]// | sed s/\\[// | tr '/' ' ')
       INDEX=0
@@ -45,7 +45,6 @@ color_my_prompt() {
   else
     PS1="\\u@mbp:${CYAN}$__pwd${RESET}$__git_mod\$ "
   fi
-
 }
 
 export PROMPT_COMMAND=color_my_prompt
